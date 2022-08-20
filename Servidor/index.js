@@ -35,11 +35,16 @@ app.post('/subirfoto', function (req, res){
   
 
 
+    AWS.config.update({
+        region: 'us-east-1', // se coloca la region del bucket 
+        accessKeyId: 'AKIAX6565FGQSGH4LP5W',
+        secretAccessKey: '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'
+    });
 
     var s3 = new AWS.S3(); // se crea una variable que pueda tener acceso a las caracteristicas de S3
     // metodo 1
     const params = {
-      Bucket: "pruebaejemplo2s",
+      Bucket: "ejemplo2s",
       Key: nombrei,
       Body: buff,
       ContentType: "image"
@@ -53,20 +58,24 @@ app.post('/obtenerfoto', function (req, res) {
     var id = req.body.id;
     var nombrei = "fotos/"+id+".jpg";
 
-   
+    AWS.config.update({
+        region: 'us-east-1', // se coloca la region del bucket 
+        accessKeyId: 'AKIAX6565FGQSGH4LP5W',
+        secretAccessKey: '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'
+    });
 
     var S3 = new AWS.S3();
 
     var getParams = 
     {
-        Bucket: "pruebaejemplo2s",
+        Bucket: "ejemplo2s",
         Key: nombrei
     }
 
     S3.getObject(getParams, function(err, data){
         if (err)
         {
-            res.json(error)
+            res.json(err)
         }else
         {
             var dataBase64 = Buffer.from(data.Body).toString('base64'); //resgresar de byte a base
