@@ -35,11 +35,6 @@ app.post('/subirfoto', function (req, res){
   
 
 
-    AWS.config.update({
-        region: 'us-east-1', // se coloca la region del bucket 
-        accessKeyId: '',
-        secretAccessKey: ''
-    });
 
     var s3 = new AWS.S3(); // se crea una variable que pueda tener acceso a las caracteristicas de S3
     // metodo 1
@@ -58,11 +53,7 @@ app.post('/obtenerfoto', function (req, res) {
     var id = req.body.id;
     var nombrei = "fotos/"+id+".jpg";
 
-    AWS.config.update({
-        region: 'us-east-1', // se coloca la region del bucket 
-        accessKeyId: '',
-        secretAccessKey: ''
-    });
+   
 
     var S3 = new AWS.S3();
 
