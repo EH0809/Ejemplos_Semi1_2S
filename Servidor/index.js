@@ -37,8 +37,8 @@ app.post('/subirfoto', function (req, res){
 
     AWS.config.update({
         region: 'us-east-1', // se coloca la region del bucket 
-        accessKeyId: 'AKIAX6565FGQSGH4LP5W',
-        secretAccessKey: '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'
+        accessKeyId: '',
+        secretAccessKey: ''
     });
 
     var s3 = new AWS.S3(); // se crea una variable que pueda tener acceso a las caracteristicas de S3
@@ -60,8 +60,8 @@ app.post('/obtenerfoto', function (req, res) {
 
     AWS.config.update({
         region: 'us-east-1', // se coloca la region del bucket 
-        accessKeyId: 'AKIAX6565FGQSGH4LP5W',
-        secretAccessKey: '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'
+        accessKeyId: '',
+        secretAccessKey: ''
     });
 
     var S3 = new AWS.S3();
