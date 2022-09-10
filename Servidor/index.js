@@ -26,8 +26,9 @@ var conn = mysql.createPool(db_credentials); // <- Se crea un pool para realizar
 
 
 // Se instancian todos los objetos de aws 
-const s3 = new AWS.S3(aws_keys.s3);
-const ddb = new AWS.DynamoDB(aws_keys.dynamodb);
+const s3 = new AWS.S3(aws_keys.s3);  //--------> Alamacenamiento S3
+const ddb = new AWS.DynamoDB(aws_keys.dynamodb); //------> Base de datos - Dynamo 
+const rek = new AWS.Rekognition(aws_keys.rekognition); //----> Inteligencia Artificial 
 
 /*
 app.get('/', function (req, res ) {
@@ -173,4 +174,109 @@ app.post("/insertdata", async (req, res) => {
     });
 });
 
-			
+
+//-----------------------------------------------Ejemplo Reko-------------------------
+
+// Analizar Emociones Cara
+app.post('/detectarcara', function (req, res) { 
+    var imagen = req.body.imagen;
+    var params = {
+      /* S3Object: {
+        Bucket: "mybucket", 
+        Name: "mysourceimage"
+      }*/
+      Image: { 
+        Bytes: Buffer.from(imagen, 'base64')
+      },
+      Attributes: ['ALL']
+    };
+    rek.detectFaces(params, function(err, data) {
+      if (err) {res.json({mensaje: "Error"})} 
+      else {   
+             res.json({Deteccion: data});      
+      }
+    });
+  });
+  // Analizar texto
+  app.post('/detectartexto', function (req, res) { 
+    var imagen = req.body.imagen;
+    var params = {
+      /* S3Object: {
+        Bucket: "mybucket", 
+        Name: "mysourceimage"
+      }*/
+      Image: { 
+        Bytes: Buffer.from(imagen, 'base64')
+      }
+    };
+    rek.detectText(params, function(err, data) {
+      if (err) {res.json({mensaje: "Error"})} 
+      else {   
+             res.json({texto: data.TextDetections});      
+      }
+    });
+  });
+  // Analizar Famoso
+  app.post('/detectarfamoso', function (req, res) { 
+    var imagen = req.body.imagen;
+    var params = {
+      /* S3Object: {
+        Bucket: "mybucket", 
+        Name: "mysourceimage"
+      }*/
+      Image: { 
+        Bytes: Buffer.from(imagen, 'base64')
+      }
+    };
+    rek.recognizeCelebrities(params, function(err, data) {
+      if (err) {
+        console.log(err);
+        res.json({mensaje: "Error al reconocer"})} 
+      else {   
+             res.json({artistas: data.CelebrityFaces});      
+      }
+    });
+  });
+  // Obtener Etiquetas
+  app.post('/detectaretiquetas', function (req, res) { 
+    var imagen = req.body.imagen;
+    var params = {
+      /* S3Object: {
+        Bucket: "mybucket", 
+        Name: "mysourceimage"
+      }*/
+      Image: { 
+        Bytes: Buffer.from(imagen, 'base64')
+      }, 
+      MaxLabels: 123
+    };
+    rek.detectLabels(params, function(err, data) {
+      if (err) {res.json({mensaje: "Error"})} 
+      else {   
+             res.json({texto: data.Labels});      
+      }
+    });
+  });
+  // Comparar Fotos
+  app.post('/compararfotos', function (req, res) { 
+    var imagen1 = req.body.imagen1;
+    var imagen2 = req.body.imagen2;
+    var params = {
+      
+      SourceImage: {
+          Bytes: Buffer.from(imagen1, 'base64')     
+      }, 
+      TargetImage: {
+          Bytes: Buffer.from(imagen2, 'base64')    
+      },
+      SimilarityThreshold: '80'
+      
+     
+    };
+    rek.compareFaces(params, function(err, data) {
+      if (err) {res.json({mensaje: err})} 
+      else {   
+             res.json({Comparacion: data.FaceMatches});      
+      }
+    });
+  });
