@@ -269,7 +269,7 @@ app.post('/detectarcara', function (req, res) {
       TargetImage: {
           Bytes: Buffer.from(imagen2, 'base64')    
       },
-      SimilarityThreshold: '80'
+      SimilarityThreshold: '50'
       
      
     };

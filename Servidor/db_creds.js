@@ -1,8 +1,8 @@
 let db_credentials = {
-    host: "",
+    host: "ejemplosemi.czlstfbttveo.us-east-1.rds.amazonaws.com",
     port: 3306,
-    user: "",
-    password: "",
-    database: ""
+    user: "admin",
+    password: "admin123456789",
+    database: "ejemplosemi"
 }
 module.exports = db_credentials;
