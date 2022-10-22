@@ -23,12 +23,15 @@ console.log("Escuchando en el puerto", port)
 // se manda a llamar las credenciales de Mysql 
 const db_credentials = require('./db_creds'); //<-- Se importa las credenciales de la base de datos 
 var conn = mysql.createPool(db_credentials); // <- Se crea un pool para realizar la conexion a la base de datos 
-
+const AmazonCognitoIdentity = require('amazon-cognito-identity-js');//<------Cognito
 
 // Se instancian todos los objetos de aws 
 const s3 = new AWS.S3(aws_keys.s3);  //--------> Alamacenamiento S3
 const ddb = new AWS.DynamoDB(aws_keys.dynamodb); //------> Base de datos - Dynamo 
 const rek = new AWS.Rekognition(aws_keys.rekognition); //----> Inteligencia Artificial 
+const translate = new AWS.Translate(aws_keys.translate); //---------> Translate
+const cognito = new AmazonCognitoIdentity.CognitoUserPool(aws_keys.cognito); //------> Cognito
+
 
 /*
 app.get('/', function (req, res ) {
@@ -52,8 +55,8 @@ app.post('/subirfoto', function (req, res){
 
     AWS.config.update({
         region: 'us-east-1', // se coloca la region del bucket 
-        accessKeyId: 'AKIAX6565FGQSGH4LP5W',
-        secretAccessKey: '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'
+        accessKeyId: '',
+        secretAccessKey: ''
     });
 
     var s3 = new AWS.S3(); // se crea una variable que pueda tener acceso a las caracteristicas de S3
@@ -75,8 +78,8 @@ app.post('/obtenerfoto', function (req, res) {
 
     AWS.config.update({
         region: 'us-east-1', // se coloca la region del bucket 
-        accessKeyId: 'AKIAX6565FGQSGH4LP5W',
-        secretAccessKey: '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'
+        accessKeyId: '',
+        secretAccessKey: ''
     });
 
     var S3 = new AWS.S3();
@@ -280,3 +283,106 @@ app.post('/detectarcara', function (req, res) {
       }
     });
   });
+
+  //-----------------Translate---------------------
+  
+app.post('/translate', (req, res) => {
+    let body = req.body
+  
+    let text = body.text
+  
+    let params = {
+      SourceLanguageCode: 'auto',
+      TargetLanguageCode: 'es',
+      Text: text || 'Hello there'
+    };
+    translate.translateText(params, function (err, data) {
+      if (err) {
+        console.log(err, err.stack);
+        res.send({ error: err })
+      } else {
+        console.log(data);
+        res.send({ message: data })
+      }
+    });
+  });
+  
+//Amazon Cognito
+
+app.post("/api/login", async (req, res) => {
+var crypto = require('crypto');
+var hash = crypto.createHash('sha256').update(req.body.password).digest('hex');
+var authenticationData = {
+    Username: req.body.username,
+    Password: hash+"D**"
+};
+var authenticationDetails = new AmazonCognitoIdentity.AuthenticationDetails(
+    authenticationData
+);
+var userData = {
+    Username: req.body.username,
+    Pool: cognito,
+};
+var cognitoUser = new AmazonCognitoIdentity.CognitoUser(userData);
+cognitoUser.setAuthenticationFlowType('USER_PASSWORD_AUTH');
+
+cognitoUser.authenticateUser(authenticationDetails, {
+    onSuccess: function (result) {
+        // User authentication was successful
+        res.json(result); //
+    },
+    onFailure: function (err) {
+        // User authentication was not successful
+        res.json(err);
+    },
+    mfaRequired: function (codeDeliveryDetails) {
+        // MFA is required to complete user authentication.
+        // Get the code from user and call
+        cognitoUser.sendMFACode(verificationCode, this);
+    },
+});
+});
+
+app.post("/api/signup", async (req, res) => {
+var attributelist = [];
+
+var dataname = {
+    Name: 'name',
+    Value: req.body.name,
+};
+var attributename = new AmazonCognitoIdentity.CognitoUserAttribute(dataname);
+
+attributelist.push(attributename);
+
+var dataemail = {
+    Name: 'email',
+    Value: req.body.email,
+};
+var attributeemail = new AmazonCognitoIdentity.CognitoUserAttribute(dataemail);
+
+attributelist.push(attributeemail);
+
+var datacarnet = {
+    Name: 'custom:carnet',
+    Value: req.body.carnet+"",
+};
+var attributecarnet = new AmazonCognitoIdentity.CognitoUserAttribute(datacarnet);
+
+attributelist.push(attributecarnet);
+
+var crypto = require('crypto');
+var hash = crypto.createHash('sha256').update(req.body.password).digest('hex');
+console.log(attributelist);
+
+cognito.signUp(req.body.username, hash+"D**", attributelist, null, async (err, data) => {
+    
+    if (err) {
+        console.log(err);
+
+        res.json(err.message || err);
+        return;
+    }
+    console.log(data);
+    res.json(req.body.username+' registrado');
+});
+});
