@@ -1,0 +1,10 @@
+version: "3" 
+
+services:  
+  apinode: 
+    container_name: apinode 
+    build: ./Servidor
+    expose:
+      - "4260"
+    ports: 
+      - "4260:4260"
